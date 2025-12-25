@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>遷移前</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
+</head>
+<body>
+
+    <header>
+        <h1>遷移します↓</h1>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('user.test') }}">ページ遷移</a></li>
+        </ul>
+    </nav>
+</body>
+</html>
