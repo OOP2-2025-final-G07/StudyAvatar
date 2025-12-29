@@ -41,3 +41,9 @@ th {
 .breadcrumb li:nth-last-child()::after {
   content: "";
 }
+
+.avatar {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;  /* 画像が潰れない */
+}

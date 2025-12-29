@@ -1,8 +1,10 @@
 from .db import db
+from .avatar_history import AvatarHistory
 from .user import User
 
 MODELS = [
-    User
+    User,
+    AvatarHistory,
 ]
 
 def initialize_database():
