@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 from peewee import DoesNotExist, IntegrityError
-
+from collections import defaultdict
 from models.avatar_history import AvatarHistory
 from models.avatar_config import AVATAR_SKINS
 
@@ -42,30 +42,75 @@ def inject_avatar_helpers():
 
 
 # ------------------------------------------------
-# 日付＋レベルを保存（POST）
+# 今日のAvatarレベル更新
 # ------------------------------------------------
-@avatar_bp.route('/set', methods=['GET', 'POST'])
-def set_avatar():
-    if request.method == 'POST':
-        # 日付とレベルを取得（空なら今日・デフォルト1）
-        date_str = request.form.get('date', '')
-        level = int(request.form.get('level', 1))
+@avatar_bp.route('/update', methods=['POST'])
+def update_today_avatar():
+    today = date.today()
 
-        if not date_str:
-            target_date = date.today()
+    # 仮データ
+    study_data = [
+        {'minutes': 115, 'subject': 'math', 'date': date.today() - timedelta(days=1)},
+        {'minutes': 15, 'subject': 'English', 'date': today},
+        {'minutes': 15, 'subject': 'math', 'date': today},
+        {'minutes': 10, 'subject': 'science', 'date': today},
+        {'minutes': 15, 'subject': 'English', 'date': today},
+        {'minutes': 10, 'subject': 'Japanese', 'date': today},
+    ]
+
+    # 区分定義
+    categories = {
+        '理系': ['math', 'science', 'English'],
+        '文系': ['history', 'Japanese', 'English']
+    }
+
+    # 集計
+    category_minutes = {'理系': 0, '文系': 0}
+    total_minutes = 0
+    total_english = 0
+
+    for row in study_data:
+        if row['date'] == today:
+            total_minutes += row['minutes']
+            subject = row['subject']
+            if subject == 'English':
+                total_english += row['minutes']
+            if subject in categories['理系']:
+                category_minutes['理系'] += row['minutes']
+            if subject in categories['文系']:
+                category_minutes['文系'] += row['minutes']
+
+    # 判定関数
+    def determine_level(cat_minutes, total_minutes, total_english):
+        # Englishは両方に足されているので combined で重複を補正
+        combined = cat_minutes['理系'] + cat_minutes['文系'] - total_english
+
+        if total_minutes >= 300:
+            return 8
+        elif cat_minutes['理系'] >= 150 and cat_minutes['理系'] > cat_minutes['文系']:
+            return 7
+        elif cat_minutes['文系'] >= 150:
+            return 6
+        elif cat_minutes['理系'] >= 60 and cat_minutes['理系'] > cat_minutes['文系']:
+            return 5
+        elif cat_minutes['文系'] >= 60:
+            return 4
+        elif combined >= 150:
+            return 3
+        elif combined >= 60:
+            return 2
         else:
-            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            return 1
 
-        try:
-            # 新規登録
-            AvatarHistory.create(date=target_date, level=level)
-        except IntegrityError:
-            # 既存なら更新
-            record = AvatarHistory.get(AvatarHistory.date == target_date)
-            record.level = level
-            record.save()
+    level = determine_level(category_minutes, total_minutes, total_english)
 
-        return redirect(url_for('index'))
+    # DB保存
+    try:
+        AvatarHistory.create(date=today, level=level)
+    except IntegrityError:
+        record = AvatarHistory.get(AvatarHistory.date == today)
+        record.level = level
+        record.save()
 
-    # GET の場合は入力フォームを表示
-    return render_template('avatar_set.html')
+    # 元ページに戻る
+    return redirect(url_for('index'))
