@@ -15,23 +15,6 @@
             <li><a href="{{ url_for('user.test') }}">ページ遷移</a></li>
         </ul>
     </nav>
-
-    <form action="{{ url_for('avatar.set_avatar') }}" method="post">
-        <label for="date">日付:</label>
-        <input type="date" id="date" name="date">
-        <br><br>
-
-        <label for="level">レベル:</label>
-        <select id="level" name="level">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-        </select>
-        <br><br>
-
-        <button type="submit">保存</button>
-    </form>
-
     <h3>今日</h3>
     {% set skin = avatar_skin_days_ago(0) %}
     {% include "avatar.html" %}
