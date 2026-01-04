@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <title>遷移前</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
 </head>
+
 <body>
     <header>
         <h1>遷移します↓</h1>
@@ -13,12 +15,10 @@
     <nav>
         <ul>
             <li><a href="{{ url_for('user.test') }}">ページ遷移</a></li>
+            <li><a href="{{ url_for('study.new_study') }}">勉強画面へ移動</a></li>
         </ul>
     </nav>
-<<<<<<< HEAD
-=======
 
->>>>>>> 9dd3be6a8bebcd9fcb18f053dd3465f36ba51d40
     <h3>今日</h3>
     {% set skin = avatar_skin_days_ago(0) %}
     {% include "avatar.html" %}
@@ -29,4 +29,5 @@
     {% set skin = avatar_skin_days_ago(20) %}
     {% include "avatar.html" %}
 </body>
+
 </html>
