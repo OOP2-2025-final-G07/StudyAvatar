@@ -1,76 +1,123 @@
+
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
-    <title>勉強追加</title>
+    <title>勉強記録 | Study Avatar</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
 </head>
-
 <body>
-    <h1>勉強を追加</h1>
 
-    <!-- パンくず -->
-    <ul class="breadcrumb">
-        <li><a href="{{ url_for('index') }}">HOME</a></li>
-        <li>新しい勉強</li>
-    </ul>
+    <header class="main-header">
+        <h1>Study Avatar</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">ホーム</a></li>
+                <li><a href="{{ url_for('study.new_study') }}" class="active">勉強記録</a></li>
+                <li><a href="{{ url_for('user.test') }}">設定(Test)</a></li>
+            </ul>
+        </nav>
+    </header>
 
-    <!-- 入力フォーム -->
-    <form action="{{ url_for('study.new_study') }}" method="post">
-        <label>タイトル: <input type="text" name="title" required></label><br>
-        <label>時間(分): <input type="number" name="minutes" required></label><br>
-        <label>備考:<br>
-            <textarea name="note" rows="4" cols="40"></textarea></label><br>
-        <label>
-            教科:
-            <select name="subject" required>
-                <option value="">選択してください</option>
-                <!-- 理系 -->
-                <option value="数学">数学</option>
-                <option value="物理">物理</option>
-                <option value="化学">化学</option>
-                <option value="生物">生物</option>
-                <option value="情報">情報</option>
+    <div class="container">
+        <div class="record-grid">
+            
+            <div class="char-side card">
+                <h2>パートナー</h2>
+                <div class="avatar-display-large">
+                    {% if skin %}
+                        <img src="{{ skin }}" alt="Current Avatar" class="avatar-img-large">
+                    {% else %}
+                        <div class="no-avatar-placeholder">
+                            <p>No Image</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="char-message">
+                    <p>「今日は何を勉強するの？」</p>
+                </div>
+            </div>
 
-                <!-- 文系 -->
-                <option value="国語">国語</option>
-                <option value="英語">英語</option>
-                <option value="日本史">日本史</option>
-                <option value="世界史">世界史</option>
-                <option value="地理">地理</option>
+            <div class="form-side card">
+                <h2>勉強時間を記録する</h2>
+                
+                <form action="{{ url_for('study.new_study') }}" method="post" class="study-form">
+                    
+                    <div class="form-group">
+                        <label>日付</label>
+                        <input type="date" name="date" class="form-control">
+                    </div>
 
-                <option value="その他">その他</option>
-            </select>
-        </label><br>
-        <label>日付:<input type="date" name="date"></label><br>
+                    <div class="form-group">
+                        <label>教科</label>
+                        <select name="subject" class="form-control" required>
+                            <option value="">選択してください</option>
+                            <optgroup label="理系">
+                                <option value="数学">数学</option>
+                                <option value="物理">物理</option>
+                                <option value="化学">化学</option>
+                                <option value="生物">生物</option>
+                                <option value="情報">情報</option>
+                            </optgroup>
+                            <optgroup label="文系">
+                                <option value="国語">国語</option>
+                                <option value="英語">英語</option>
+                                <option value="日本史">日本史</option>
+                                <option value="世界史">世界史</option>
+                                <option value="地理">地理</option>
+                            </optgroup>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
 
+                    <div class="form-group">
+                        <label>タイトル</label>
+                        <input type="text" name="title" class="form-control" placeholder="例: 数学I 復習" required>
+                    </div>
 
-        <!-- 
-            52行目の url_for は Flask(Jinja2) のテンプレート構文です。
-            VSCode上では JavaScript の構文エラーとして表示されることがありますが、
-            実行上は問題ありません。
-        -->
-        <button type="button" onclick="location.href='{{ url_for('index') }}'">
-            キャンセル
-        </button>
-        <button type="submit">登録</button>
-    </form>
+                    <div class="form-group">
+                        <label>時間 (分)</label>
+                        <input type="number" name="minutes" class="form-control" placeholder="60" required>
+                    </div>
 
-    <!-- 一覧表示 -->
-    <table>
-        <tbody>
-            {% for study in items %}
-            <tr>
-                <td>内容:{{ study.title }}</td>
-                <td>時間:{{ study.minutes }}分</td>
-                <td>備考:{{ study.note }}</td>
-                <td>教科:{{ study.subject }}</td>
-                <td>日付:{{ study.date }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    <div class="form-group">
+                        <label>備考</label>
+                        <textarea name="note" rows="3" class="form-control" placeholder="感想など"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">記録する</button>
+                    </div>
+                </form>
+
+                <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+                <h3>最近の記録リスト</h3>
+                <div class="table-wrapper" style="max-height: 200px;">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>日付</th>
+                                <th>教科</th>
+                                <th>タイトル</th>
+                                <th>時間</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for study in items %}
+                            <tr>
+                                <td>{{ study.date }}</td>
+                                <td>{{ study.subject }}</td>
+                                <td>{{ study.title }}</td>
+                                <td>{{ study.minutes }}分</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 </body>
-
 </html>
