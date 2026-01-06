@@ -1,33 +1,115 @@
+
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
-    <title>遷移前</title>
+    <title>ホーム | Study Avatar</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
 </head>
-
 <body>
-    <header>
-        <h1>遷移します↓</h1>
+
+    <header class="main-header">
+        <h1>Study Avatar</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}" class="active">ホーム</a></li>
+                <li><a href="{{ url_for('study.new_study') }}">勉強記録</a></li>
+                <li><a href="{{ url_for('user.test') }}">設定(Test)</a></li>
+            </ul>
+        </nav>
     </header>
 
-    <nav>
-        <ul>
-            <li><a href="{{ url_for('user.test') }}">ページ遷移</a></li>
-            <li><a href="{{ url_for('study.new_study') }}">勉強画面へ移動</a></li>
-        </ul>
-    </nav>
+    <div class="container">
+        <div class="dashboard-grid">
+            
+            <div class="current-char-area card">
+                <h2>今日のパートナー</h2>
+                
+                <div class="avatar-display-large">
+                    {% if skin %}
+                        <img src="{{ skin }}" alt="Current Avatar" class="avatar-img-large">
+                    {% else %}
+                        <div class="no-avatar-placeholder">
+                            <p>No Image</p>
+                        </div>
+                    {% endif %}
+                </div>
 
-    <h3>今日</h3>
-    {% set skin = avatar_skin_days_ago(0) %}
-    {% include "avatar.html" %}
-    <h3>昨日</h3>
-    {% set skin = avatar_skin_days_ago(1) %}
-    {% include "avatar.html" %}
-    <h3>20日前</h3>
-    {% set skin = avatar_skin_days_ago(20) %}
-    {% include "avatar.html" %}
+                <div class="char-info">
+                    <p class="today-date">{{ current_date|default('2026/01/06') }}</p>
+
+                    <div class="status-box">
+                        <p><strong>現在のレベル:</strong> <span class="dummy-text">Lv.3</span></p>
+                        <p style="font-size: 0.8rem; color: #888;">(※集計機能と連携待ち)</p>
+                    </div>
+
+                    <form action="{{ url_for('avatar.update_today_avatar') }}" method="post">
+                        <button type="submit" class="btn-update">今日の成長を反映</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="history-area card">
+                <h3>過去のキャラ</h3>
+                <div class="history-scroller">
+                    <div class="history-list">
+                        {% for n in range(7) %}
+                        <div class="history-item">
+                            <div class="history-avatar-wrapper">
+                                <img src="{{ avatar_skin_days_ago(n) }}" alt="{{ n }}日前" class="avatar-img-small">
+                            </div>
+                            <span class="history-label">
+                                {% if n == 0 %}今日
+                                {% elif n == 1 %}昨日
+                                {% else %}{{ n }}日前
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="log-area card">
+                <div class="log-header">
+                    <h3>学習ログ</h3>
+                    <a href="{{ url_for('study.new_study') }}" class="btn-small">記録追加</a>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>日付</th>
+                                <th>教科</th>
+                                <th>タイトル</th>
+                                <th>時間</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if recent_studies %}
+                                {% for study in recent_studies %}
+                                <tr>
+                                    <td>{{ study.date }}</td>
+                                    <td>{{ study.subject }}</td>
+                                    <td>{{ study.title }}</td>
+                                    <td>{{ study.minutes }}分</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" style="text-align: center; padding: 20px; color: #999;">
+                                        まだ記録がありません
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </body>
-
 </html>
