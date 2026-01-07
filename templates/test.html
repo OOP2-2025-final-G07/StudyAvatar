@@ -13,10 +13,10 @@
         <li><a href="{{ url_for('index') }}">遷移元</a></li>
         <li>遷移先</li>
     </ul>
-</body>
 
-<form action="{{ url_for('avatar.update_today_avatar') }}" method="post">
-    <button type="submit">今日のレベルを更新</button>
-</form>
+    <form action="{{ url_for('aggregator.update_level') }}" method="post">
+        <button type="submit">今日のレベルを更新</button>
+    </form>
+</body>
 
 </html>
