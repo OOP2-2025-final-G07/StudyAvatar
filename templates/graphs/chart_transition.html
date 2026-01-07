@@ -1,0 +1,48 @@
+<canvas id="chart" data-labels='{{ labels | tojson }}' data-values='{{ values | tojson }}'>
+</canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const canvas = document.getElementById('chart');
+    const labels = JSON.parse(canvas.dataset.labels);
+    const values = JSON.parse(canvas.dataset.values);
+    const ctx = canvas.getContext('2d');
+
+    new Chart(ctx, {
+        type: 'bar', // 棒グラフ形式
+        data: {
+            labels: labels, // 日付 (例: 01/01, 01/02...)
+            datasets: [{
+                label: '合計学習時間 (分)',
+                data: values,
+                backgroundColor: '#9be0c1', // 優しい緑色（バイトアプリの学年カラーを参考）
+                borderColor: '#78c2a4',
+                borderWidth: 1,
+                borderRadius: 4 // 角を少し丸くする
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '時間（分）'
+                    },
+                    ticks: {
+                        precision: 0 // 整数で表示
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: '日付'
+                    }
+                }
+            }
+        }
+    });
+</script>
