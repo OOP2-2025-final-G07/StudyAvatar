@@ -48,42 +48,31 @@ def inject_avatar_helpers():
 def update_today_avatar():
     today = date.today()
 
-    # 仮データ
-    study_data = [
-        {'minutes': 115, 'subject': 'math', 'date': date.today() - timedelta(days=1)},
-        {'minutes': 15, 'subject': 'English', 'date': today},
-        {'minutes': 15, 'subject': 'math', 'date': today},
-        {'minutes': 10, 'subject': 'science', 'date': today},
-        {'minutes': 15, 'subject': 'English', 'date': today},
-        {'minutes': 10, 'subject': 'Japanese', 'date': today},
-    ]
+    from models import Study
+    today_studies = Study.select().where(Study.date == today)
 
     # 区分定義
     categories = {
-        '理系': ['math', 'science', 'English'],
-        '文系': ['history', 'Japanese', 'English']
+        '理系': ['数学', '物理', '化学', '生物', '情報', '理系その他'],
+        '文系': ['国語', '日本史', '世界史', '地理', '英語', '文系その他']
     }
 
     # 集計
     category_minutes = {'理系': 0, '文系': 0}
     total_minutes = 0
-    total_english = 0
 
-    for row in study_data:
-        if row['date'] == today:
-            total_minutes += row['minutes']
-            subject = row['subject']
-            if subject == 'English':
-                total_english += row['minutes']
-            if subject in categories['理系']:
-                category_minutes['理系'] += row['minutes']
-            if subject in categories['文系']:
-                category_minutes['文系'] += row['minutes']
+    for study in today_studies:
+        total_minutes += study.minutes
+
+        if study.subject in categories['理系']:
+            category_minutes['理系'] += study.minutes
+
+        if study.subject in categories['文系']:
+            category_minutes['文系'] += study.minutes
 
     # 判定関数
-    def determine_level(cat_minutes, total_minutes, total_english):
-        # Englishは両方に足されているので combined で重複を補正
-        combined = cat_minutes['理系'] + cat_minutes['文系'] - total_english
+    def determine_level(cat_minutes, total_minutes):
+        combined = cat_minutes['理系'] + cat_minutes['文系']
 
         if total_minutes >= 300:
             return 8
@@ -102,7 +91,7 @@ def update_today_avatar():
         else:
             return 1
 
-    level = determine_level(category_minutes, total_minutes, total_english)
+    level = determine_level(category_minutes, total_minutes)
 
     # DB保存
     try:
@@ -112,5 +101,4 @@ def update_today_avatar():
         record.level = level
         record.save()
 
-    # 元ページに戻る
     return redirect(url_for('index'))
