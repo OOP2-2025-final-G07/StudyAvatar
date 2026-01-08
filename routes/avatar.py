@@ -80,11 +80,11 @@ def update_today_avatar():
             return 7
         elif cat_minutes['文系'] >= 150:
             return 6
-        elif cat_minutes['理系'] >= 60 and cat_minutes['理系'] > cat_minutes['文系']:
-            return 5
-        elif cat_minutes['文系'] >= 60:
-            return 4
         elif combined >= 150:
+            return 5
+        elif cat_minutes['理系'] >= 60 and cat_minutes['理系'] > cat_minutes['文系']:
+            return 4
+        elif cat_minutes['文系'] >= 60:
             return 3
         elif combined >= 60:
             return 2
