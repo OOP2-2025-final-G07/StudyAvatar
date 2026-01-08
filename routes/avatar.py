@@ -92,8 +92,15 @@ def update_today_avatar():
             return 2
         else:
             return 1
+        
+    from models.avatar_threshold_set import AvatarThresholdSet
 
-    level = determine_level(category_minutes, total_minutes)
+    try:
+        threshold = AvatarThresholdSet.get(AvatarThresholdSet.is_active == True)
+    except DoesNotExist:
+        threshold = None
+
+    level = determine_level(category_minutes, total_minutes, threshold)
 
     # DB保存
     try:
