@@ -1,0 +1,41 @@
+<canvas id="chart" data-labels='{{ labels | tojson }}' data-values='{{ values | tojson }}'>
+</canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const canvas = document.getElementById('chart');
+    // JSON文字列をJavaScript配列に変換
+    const labels = JSON.parse(canvas.dataset.labels);
+    const values = JSON.parse(canvas.dataset.values);
+    const ctx = canvas.getContext('2d');
+
+    new Chart(ctx, {
+        type: 'doughnut', // ドーナツチャート形式（中央が空いた円グラフ）
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                // 教科ごとに見分けやすい配色を設定
+                backgroundColor: [
+                    '#FF6384', // 数学など
+                    '#36A2EB', // 英語など
+                    '#FFCE56', // 理科など
+                    '#4BC0C0', // 情報など
+                    '#9966FF', // 国語など
+                    '#FF9F40'  // その他
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom' // ラベルを下に表示
+                }
+            }
+        }
+    });
+</script>
