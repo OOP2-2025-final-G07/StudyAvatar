@@ -1,12 +1,12 @@
 from .db import db
 from .avatar_history import AvatarHistory
 from .avatar_threshold_set import AvatarThresholdSet
-from .user import User
+from .setting import setting
 from .study import Study
 from seeds.avatar_seed import seed_threshold_sets
 
 MODELS = [
-    User,
+    setting,
     AvatarHistory,
     Study,
     AvatarThresholdSet,

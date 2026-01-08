@@ -1,7 +1,7 @@
 from peewee import Model, CharField
 from .db import db
 
-class User(Model):
+class setting(Model):
     name = CharField()
 
     class Meta:
