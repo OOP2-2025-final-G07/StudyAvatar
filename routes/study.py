@@ -30,4 +30,4 @@ def new_study():
         return redirect(url_for('study.new_study'))
 
     studys = Study.select()
-    return render_template('study.html', items=studys)
+    return render_template('study.html', items=studys, debug=True)

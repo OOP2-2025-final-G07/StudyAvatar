@@ -1,10 +1,37 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <title>勉強記録 | Study Avatar</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
+    <style>
+        /* タイマーのデザイン */
+        .timer-box {
+            background-color: #333;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 2.5rem;
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: inset 0 0 10px #000;
+            letter-spacing: 2px;
+        }
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        /* デバッグエリアのデザイン */
+        .debug-area {
+            background-color: #f0f0f0;
+            padding: 15px;
+            margin-top: 30px;
+            border: 2px dashed #bbb;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 <body>
 
@@ -34,7 +61,7 @@
                     {% endif %}
                 </div>
                 <div class="char-message">
-                    <p>「今日は何を勉強するの？」</p>
+                    <p>「集中して頑張ろう！」</p>
                 </div>
             </div>
 
@@ -43,10 +70,12 @@
                 
                 <form action="{{ url_for('study.new_study') }}" method="post" class="study-form">
                     
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label>日付</label>
                         <input type="date" name="date" class="form-control">
-                    </div>
+                        <input type="hidden" name="start_date" id="start_date">
+                        <input type="hidden" name="started" id="started" value="0">
+                    </div> -->
 
                     <div class="form-group">
                         <label>教科</label>
@@ -58,6 +87,7 @@
                                 <option value="化学">化学</option>
                                 <option value="生物">生物</option>
                                 <option value="情報">情報</option>
+                                <option value="理系その他">理系その他</option>
                             </optgroup>
                             <optgroup label="文系">
                                 <option value="国語">国語</option>
@@ -65,59 +95,125 @@
                                 <option value="日本史">日本史</option>
                                 <option value="世界史">世界史</option>
                                 <option value="地理">地理</option>
+                                <option value="文系その他">文系その他</option>
                             </optgroup>
-                            <option value="その他">その他</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>タイトル</label>
-                        <input type="text" name="title" class="form-control" placeholder="例: 数学I 復習" required>
+                        <input type="text" name="title" class="form-control" placeholder="例: 中間テスト対策" required>
                     </div>
 
                     <div class="form-group">
-                        <label>時間 (分)</label>
-                        <input type="number" name="minutes" class="form-control" placeholder="60" required>
+                        <label>タイム計測</label>
+                        <div class="timer-box">
+                            <span id="timer_minutes">00</span> : <span id="timer_seconds">00</span>
+                        </div>
+                        <div class="timer-controls">
+                            <button type="button" class="btn-primary" onclick="startTimer()" style="background-color: #2196F3;">スタート</button>
+                            <button type="button" class="btn-primary" onclick="stopTimer()" style="background-color: #F44336;">ストップ</button>
+                        </div>
                     </div>
+
+                    <!-- <div class="form-group">
+                        <label>時間 (分)</label>
+                        <input type="number" name="minutes" id="minutes" class="form-control" placeholder="60" required>
+                    </div> -->
 
                     <div class="form-group">
                         <label>備考</label>
                         <textarea name="note" rows="3" class="form-control" placeholder="感想など"></textarea>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">記録する</button>
+                    <div class="form-actions" style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn-primary">記録完了</button>
+                        <button type="button" class="btn-small" onclick="location.href='{{ url_for('index') }}'" style="background: #ccc; border:none; color: #333; width: auto; padding: 12px 20px;">キャンセル</button>
                     </div>
-                </form>
 
-                <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-                <h3>最近の記録リスト</h3>
-                <div class="table-wrapper" style="max-height: 200px;">
-                    <table class="log-table">
-                        <thead>
-                            <tr>
-                                <th>日付</th>
-                                <th>教科</th>
-                                <th>タイトル</th>
-                                <th>時間</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for study in items %}
-                            <tr>
-                                <td>{{ study.date }}</td>
-                                <td>{{ study.subject }}</td>
-                                <td>{{ study.title }}</td>
-                                <td>{{ study.minutes }}分</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+                    <h3>最近の記録リスト</h3>
+                    <div class="table-wrapper" style="max-height: 200px; margin-bottom: 20px;">
+                        <table class="log-table">
+                            <thead>
+                                <tr>
+                                    <th>日付</th>
+                                    <th>教科</th>
+                                    <th>タイトル</th>
+                                    <th>時間</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for study in items %}
+                                <tr>
+                                    <td>{{ study.date }}</td>
+                                    <td>{{ study.subject }}</td>
+                                    <td>{{ study.title }}</td>
+                                    <td>{{ study.minutes }}分</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
-            </div>
+                    {% if debug %}
+                    <div class="debug-area">
+                        <h4 style="margin-top: 0; color: #555;">🔧 デバッグ用手入力</h4>
+                        <div class="form-group">
+                            <label>日付 (手動): <input type="date" name="debug_date" class="form-control"></label>
+                        </div>
+                        <div class="form-group">
+                            <label>時間 (分・手動): <input type="number" name="debug_minutes" min="0" class="form-control"></label>
+                        </div>
+                        <p style="color: gray; font-size: 0.8rem;">※タイマーを使わず、強制的に日時を指定して記録する場合に使用（上の登録ボタンで送信されます）</p>
+                    </div>
+                    {% endif %}
+
+                </form> </div>
         </div>
     </div>
+
+    <script>
+        let startTime = null;
+        let timerInterval = null;
+
+        function startTimer() {
+            if (timerInterval !== null) return;
+            startTime = Date.now();
+            
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+
+            const dateField = document.getElementById("start_date");
+            if(dateField) dateField.value = `${yyyy}-${mm}-${dd}`;
+            
+            const startedField = document.getElementById("started");
+            if(startedField) startedField.value = "1";
+
+            timerInterval = setInterval(() => {
+                const diffMs = Date.now() - startTime;
+                const minutes = Math.floor(diffMs / 60000);
+                const seconds = Math.floor((diffMs % 60000) / 1000);
+
+                document.getElementById("timer_minutes").textContent = String(minutes).padStart(2, "0");
+                document.getElementById("timer_seconds").textContent = String(seconds).padStart(2, "0");
+                
+                const minutesInput = document.getElementById("minutes");
+                if(minutesInput) {
+                    minutesInput.value = minutes;
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval !== null) {
+                clearInterval(timerInterval);
+                timerInterval = null; 
+            }
+        }
+    </script>
 
 </body>
 </html>
