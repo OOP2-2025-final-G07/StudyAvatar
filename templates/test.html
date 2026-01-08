@@ -19,4 +19,20 @@
     <button type="submit">今日のレベルを更新</button>
 </form>
 
+<form method="post" action="{{ url_for('avatar.change_threshold') }}">
+  <label>進化基準</label>
+  <p>件数確認: {{ threshold_sets|length }}</p>
+
+  <select name="threshold_id">
+    {% for t in threshold_sets %}
+      <option value="{{ t.id }}"
+        {% if t.is_active %}selected{% endif %}>
+        {{ t.name }}（{{ t.min_1 }}, {{ t.min_2 }}, {{ t.min_3 }}）
+      </option>
+    {% endfor %}
+  </select>
+  <button type="submit">変更</button>
+</form>
+
+
 </html>
