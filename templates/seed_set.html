@@ -3,26 +3,19 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>遷移した</title>
+    <title>設定</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
 </head>
 
 <body>
-    <h1>遷移したよ！</h1>
+    <h1>設定画面</h1>
     <ul class="breadcrumb">
-        <li><a href="{{ url_for('index') }}">遷移元</a></li>
-        <li>遷移先</li>
+        <li><a href="{{ url_for('index') }}">ホームへ戻る</a></li>
     </ul>
 </body>
 
-<form action="{{ url_for('avatar.update_today_avatar') }}" method="post">
-    <button type="submit">今日のレベルを更新</button>
-</form>
-
 <form method="post" action="{{ url_for('avatar.change_threshold') }}">
   <label>進化基準</label>
-  <p>件数確認: {{ threshold_sets|length }}</p>
-
   <select name="threshold_id">
     {% for t in threshold_sets %}
       <option value="{{ t.id }}"
