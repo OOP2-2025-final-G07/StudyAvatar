@@ -4,6 +4,7 @@ from peewee import DoesNotExist, IntegrityError
 from collections import defaultdict
 from models.avatar_history import AvatarHistory
 from models.avatar_config import AVATAR_SKINS
+from models.avatar_threshold_set import AvatarThresholdSet
 
 avatar_bp = Blueprint('avatar', __name__, url_prefix='/avatar')
 
@@ -71,22 +72,23 @@ def update_today_avatar():
             category_minutes['文系'] += study.minutes
 
     # 判定関数
-    def determine_level(cat_minutes, total_minutes):
+    def determine_level(cat_minutes, total_minutes, threshold):
         combined = cat_minutes['理系'] + cat_minutes['文系']
-
-        if total_minutes >= 300:
+        if threshold is None:
+            return 1
+        if total_minutes >= threshold.min_3:
             return 8
-        elif cat_minutes['理系'] >= 150 and cat_minutes['理系'] > cat_minutes['文系']:
+        elif cat_minutes['理系'] >= threshold.min_2 and cat_minutes['理系'] > cat_minutes['文系']:
             return 7
-        elif cat_minutes['文系'] >= 150:
+        elif cat_minutes['文系'] >= threshold.min_2:
             return 6
-        elif combined >= 150:
+        elif combined >= threshold.min_2:
             return 5
-        elif cat_minutes['理系'] >= 60 and cat_minutes['理系'] > cat_minutes['文系']:
+        elif cat_minutes['理系'] >= threshold.min_1 and cat_minutes['理系'] > cat_minutes['文系']:
             return 4
-        elif cat_minutes['文系'] >= 60:
+        elif cat_minutes['文系'] >= threshold.min_1:
             return 3
-        elif combined >= 60:
+        elif combined >= threshold.min_1:
             return 2
         else:
             return 1
@@ -102,3 +104,23 @@ def update_today_avatar():
         record.save()
 
     return redirect(url_for('index'))
+
+@avatar_bp.route('/threshold', methods=['POST'])
+def change_threshold():
+    threshold_id = request.form['threshold_id']
+
+    AvatarThresholdSet.update(is_active=False).execute()
+    AvatarThresholdSet.update(is_active=True)\
+        .where(AvatarThresholdSet.id == threshold_id)\
+        .execute()
+
+    return redirect(url_for('index'))
+
+# ------------------------------------------------
+# 進化基準セットをテンプレに渡す
+# ------------------------------------------------
+@avatar_bp.app_context_processor
+def inject_threshold_sets():
+    return dict(
+        threshold_sets=AvatarThresholdSet.select()
+    )
