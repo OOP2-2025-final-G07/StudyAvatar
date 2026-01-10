@@ -72,42 +72,54 @@
             <div class="form-side card">
                 <h2>勉強時間を記録する</h2>
 
+                {% if error_message %}
+                <p style="color: red;">{{ error_message }}</p>
+                {% endif %}
+
                 <form action="{{ url_for('study.new_study') }}" method="post" class="study-form">
 
                     <!-- <div class="form-group">
                         <label>日付</label>
                         <input type="date" name="date" class="form-control">
-                        <input type="hidden" name="start_date" id="start_date">
-                        <input type="hidden" name="started" id="started" value="0">
                     </div> -->
 
                     <div class="form-group">
                         <label>教科</label>
                         <select name="subject" class="form-control" required>
                             <option value="">選択してください</option>
+
                             <optgroup label="理系">
-                                <option value="数学">数学</option>
-                                <option value="物理">物理</option>
-                                <option value="化学">化学</option>
-                                <option value="生物">生物</option>
-                                <option value="情報">情報</option>
-                                <option value="理系その他">理系その他</option>
+                                <option value="数学" {{ 'selected' if form_data.subject=='数学' }}>数学</option>
+                                <option value="物理" {{ 'selected' if form_data.subject=='物理' }}>物理</option>
+                                <option value="化学" {{ 'selected' if form_data.subject=='化学' }}>化学</option>
+                                <option value="生物" {{ 'selected' if form_data.subject=='生物' }}>生物</option>
+                                <option value="情報" {{ 'selected' if form_data.subject=='情報' }}>情報</option>
+                                <option value="理系その他" {{ 'selected' if form_data.subject=='理系その他' }}>理系その他</option>
                             </optgroup>
+
                             <optgroup label="文系">
-                                <option value="国語">国語</option>
-                                <option value="英語">英語</option>
-                                <option value="日本史">日本史</option>
-                                <option value="世界史">世界史</option>
-                                <option value="地理">地理</option>
-                                <option value="文系その他">文系その他</option>
+                                <option value="国語" {{ 'selected' if form_data.subject=='国語' }}>国語</option>
+                                <option value="英語" {{ 'selected' if form_data.subject=='英語' }}>英語</option>
+                                <option value="日本史" {{ 'selected' if form_data.subject=='日本史' }}>日本史</option>
+                                <option value="世界史" {{ 'selected' if form_data.subject=='世界史' }}>世界史</option>
+                                <option value="地理" {{ 'selected' if form_data.subject=='地理' }}>地理</option>
+                                <option value="文系その他" {{ 'selected' if form_data.subject=='文系その他' }}>文系その他</option>
                             </optgroup>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>タイトル</label>
-                        <input type="text" name="title" class="form-control" placeholder="例: 中間テスト対策" required>
+                        <input type="text" name="title" class="form-control" placeholder="例: 中間テスト対策" required
+                            value="{{ form_data.title if form_data else '' }}">
                     </div>
+
+                    <!-- タイマー開始時の日付（送信用） -->
+                    <input type="hidden" name="start_date" id="start_date">
+                    <!-- タイマーが開始されたかどうか -->
+                    <input type="hidden" name="started" id="started" value="0">
+                    <!-- 送信用計測時間データ（hidden） -->
+                    <input type="hidden" name="minutes" id="minutes">
 
                     <div class="form-group">
                         <label>タイム計測</label>
@@ -129,7 +141,8 @@
 
                     <div class="form-group">
                         <label>備考</label>
-                        <textarea name="note" rows="3" class="form-control" placeholder="感想など"></textarea>
+                        <textarea name="note" rows="4" class="form-control"
+                            placeholder="感想など">{{ form_data.note if form_data else '' }}</textarea>
                     </div>
 
                     <div class="form-actions" style="display: flex; gap: 10px;">
@@ -139,7 +152,7 @@
                     </div>
 
                     <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-                    <h3>最近の記録リスト</h3>
+                    <h3>最近の記録リスト</h3><!-- のちに削除してください -->
                     <div class="table-wrapper" style="max-height: 200px; margin-bottom: 20px;">
                         <table class="log-table">
                             <thead>

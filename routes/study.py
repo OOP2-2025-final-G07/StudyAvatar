@@ -10,7 +10,22 @@ study_bp = Blueprint('study', __name__, url_prefix='/study')
 # 入力、入力したものを確認できるよう表示する
 @study_bp.route('/', methods=['GET', 'POST'])
 def new_study():
+
+    error_message = None
+
+    # フォーム保持用（初期値）
+    form_data = {
+        "title": "",
+        "note": "",
+        "subject": ""
+    }
+        
     if request.method == 'POST':
+
+        # 入力値の保存
+        form_data["title"] = request.form.get("title", "")
+        form_data["note"] = request.form.get("note", "")
+        form_data["subject"] = request.form.get("subject", "")
 
         # デバッグ用データがあればタイマーを開始していなくてもデータを記録する
         debug_date = request.form.get("debug_date")
@@ -19,30 +34,42 @@ def new_study():
             request.form.get("started") != "1"
             and not (current_app.debug and (debug_minutes and debug_date))
         ):
-            abort(400, "タイマーを開始してください")
-
-        # 日付の決定（デバッグデータがあればデバッグデータを優先）
-        if current_app.debug and debug_date:
-            study_date = datetime.strptime(debug_date, "%Y-%m-%d").date()
+            error_message = "タイマーを開始してください"
+            studys = Study.select()
+            return render_template('study.html',
+                                    items=studys,
+                                    debug=current_app.debug,
+                                    error_message=error_message,
+                                    form_data=form_data
+                                    )
+        
         else:
-            date_str = request.form.get("start_date")
-            study_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-
-        # 時間の決定（デバッグデータがあればデバッグデータを優先）
-        if current_app.debug and debug_minutes:
-            minutes = int(debug_minutes)
-        else:
-            minutes = int(request.form["minutes"])
+            # 日付の決定（デバッグデータがあればデバッグデータを優先）
+            if current_app.debug and debug_date:
+                study_date = datetime.strptime(debug_date, "%Y-%m-%d").date()
+            else:
+                date_str = request.form.get("start_date")
+                study_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    
+            # 時間の決定（デバッグデータがあればデバッグデータを優先）
+            if current_app.debug and debug_minutes:
+                minutes = int(debug_minutes)
+            else:
+                minutes = int(request.form["minutes"])
             
-        # データの登録
-        Study.create(
-            title=request.form['title'],
-            minutes=minutes,
-            note=request.form['note'],
-            subject=request.form['subject'],
-            date=study_date
-        )
-        return redirect(url_for('study.new_study'))
+            # データの登録
+            Study.create(
+                title=request.form['title'],
+                minutes=minutes,
+                note=request.form['note'],
+                subject=request.form['subject'],
+                date=study_date
+            )
+            return redirect(url_for('index'))
 
     studys = Study.select()
-    return render_template('study.html', items=studys, debug=True)
+    return render_template('study.html',
+                            items=studys,
+                            debug=current_app.debug,
+                            form_data=form_data
+                           )
