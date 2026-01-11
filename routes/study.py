@@ -35,41 +35,52 @@ def new_study():
             and not (current_app.debug and (debug_minutes and debug_date))
         ):
             error_message = "タイマーを開始してください"
-            studys = Study.select()
+            studys = Study.select() # ＊変更後、この行を削除してください
             return render_template('study.html',
-                                    items=studys,
+                                    items=studys, # ＊変更後、この行を削除してください
                                     debug=current_app.debug,
                                     error_message=error_message,
                                     form_data=form_data
                                     )
         
+        # 日付の決定（デバッグデータがあればデバッグデータを優先）
+        if current_app.debug and debug_date:
+            study_date = datetime.strptime(debug_date, "%Y-%m-%d").date()
         else:
-            # 日付の決定（デバッグデータがあればデバッグデータを優先）
-            if current_app.debug and debug_date:
-                study_date = datetime.strptime(debug_date, "%Y-%m-%d").date()
-            else:
-                date_str = request.form.get("start_date")
-                study_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-    
-            # 時間の決定（デバッグデータがあればデバッグデータを優先）
-            if current_app.debug and debug_minutes:
-                minutes = int(debug_minutes)
-            else:
-                minutes = int(request.form["minutes"])
-            
-            # データの登録
-            Study.create(
-                title=request.form['title'],
-                minutes=minutes,
-                note=request.form['note'],
-                subject=request.form['subject'],
-                date=study_date
-            )
-            return redirect(url_for('index'))
+            date_str = request.form.get("start_date")
+            study_date = datetime.strptime(date_str, "%Y-%m-%d").date()
 
-    studys = Study.select()
+        # 時間の決定（デバッグデータがあればデバッグデータを優先）
+        if current_app.debug and debug_minutes:
+            minutes = int(debug_minutes)
+        else:
+            minutes = int(request.form["minutes"])
+
+        # 0分かどうかのチェック
+        if minutes == 0:
+            error_message = "記録が短すぎて登録できません。1分以上計測してください。"
+            studys = Study.select() # ＊変更後、この行を削除してください
+            return render_template(
+                'study.html',
+                items=studys, # ＊変更後、この行を削除してください
+                debug=current_app.debug,
+                error_message=error_message,
+                form_data=form_data
+            )
+            
+        # データの登録
+        Study.create(
+            title=request.form['title'],
+            minutes=minutes,
+            note=request.form['note'],
+            subject=request.form['subject'],
+            date=study_date
+        )
+        return redirect(url_for('index'))
+
+    studys = Study.select() # ＊変更後、この行を削除してください
     return render_template('study.html',
-                            items=studys,
+                            items=studys, # ＊変更後、この行を削除してください
                             debug=current_app.debug,
                             form_data=form_data
                            )

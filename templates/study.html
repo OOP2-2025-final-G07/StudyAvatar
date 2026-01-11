@@ -38,7 +38,7 @@
 </head>
 
 <body>
-
+    <!-- ヘッダー部分 -->
     <header class="main-header">
         <h1>Study Avatar</h1>
         <nav>
@@ -50,9 +50,11 @@
         </nav>
     </header>
 
+    <!-- メイン画面 -->
     <div class="container">
         <div class="record-grid">
 
+            <!-- キャラクター表示 -->
             <div class="char-side card">
                 <h2>パートナー</h2>
                 <div class="avatar-display-large">
@@ -69,6 +71,7 @@
                 </div>
             </div>
 
+            <!-- 勉強登録画面 -->
             <div class="form-side card">
                 <h2>勉強時間を記録する</h2>
 
@@ -76,7 +79,8 @@
                 <p style="color: red;">{{ error_message }}</p>
                 {% endif %}
 
-                <form action="{{ url_for('study.new_study') }}" method="post" class="study-form">
+                <form action="{{ url_for('study.new_study') }}" method="post" class="study-form"
+                    onsubmit="return checkBeforeSubmit();">
 
                     <!-- <div class="form-group">
                         <label>日付</label>
@@ -127,10 +131,12 @@
                             <span id="timer_minutes">00</span> : <span id="timer_seconds">00</span>
                         </div>
                         <div class="timer-controls">
-                            <button type="button" class="btn-primary" onclick="startTimer()"
+                            <button type="button" class="btn-primary" id="startBtn"
                                 style="background-color: #2196F3;">スタート</button>
-                            <button type="button" class="btn-primary" onclick="stopTimer()"
+                            <button type="button" class="btn-primary" id="pauseBtn" disabled
                                 style="background-color: #F44336;">ストップ</button>
+                            <button type="button" class="btn-primary" id="resumeBtn"
+                                style="background-color: #4CAF50;">再開</button>
                         </div>
                     </div>
 
@@ -146,13 +152,16 @@
                     </div>
 
                     <div class="form-actions" style="display: flex; gap: 10px;">
-                        <button type="submit" class="btn-primary">記録完了</button>
-                        <button type="button" class="btn-small" onclick="location.href='{{ url_for('index') }}'"
-                            style="background: #ccc; border:none; color: #333; width: auto; padding: 12px 20px;">キャンセル</button>
+                        <button type="submit" class="btn-primary">
+                            記録完了
+                        </button>
+                        <button type="button" class="btn-small" onclick="confirmCancel()"
+                            style="background: #ccc; border:none; color: #333; width: auto; padding: 12px 20px;">キャンセル
+                        </button>
                     </div>
 
                     <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-                    <h3>最近の記録リスト</h3><!-- のちに削除してください -->
+                    <h3>最近の記録リスト</h3><!-- のちに削除し、indexに移動させてください -->
                     <div class="table-wrapper" style="max-height: 200px; margin-bottom: 20px;">
                         <table class="log-table">
                             <thead>
@@ -197,45 +206,120 @@
 
 
     <script>
+        // タイマーの状況 idle/running/paused
+        let timerState = "idle";
+
+        // 状態更新
+        function setState(state) {
+            timerState = state;
+            updateButtons();
+        }
+
+        // スタート、ストップ、再開ボタンを押した時の処理
+        startBtn.onclick = () => {
+            startTimer();
+            setState("running");
+        };
+
+        pauseBtn.onclick = () => {
+            setState("paused");
+            stopTimer();
+        };
+
+        resumeBtn.onclick = () => {
+            setState("running");
+            resumeTimer();
+        };
+
+        // ボタンの変更
+        function updateButtons() {
+            startBtn.disabled = (timerState !== "idle");
+            pauseBtn.disabled = (timerState !== "running");
+            resumeBtn.disabled = (timerState !== "paused");
+        }
+
+        // タイマーの処理
         let startTime = null;
         let timerInterval = null;
+        // 累積時間
+        let elapsedMs = 0;
 
-        function startTimer() {
-            if (timerInterval !== null) return;
-            startTime = Date.now();
+        // タイマーの値処理
+        function timerTick() {
+            const diffMs = Date.now() - startTime + elapsedMs;
+            const minutes = Math.floor(diffMs / 60000);
+            const seconds = Math.floor((diffMs % 60000) / 1000);
 
+            document.getElementById("timer_minutes").textContent =
+                String(minutes).padStart(2, "0");
+            document.getElementById("timer_seconds").textContent =
+                String(seconds).padStart(2, "0");
+
+            document.getElementById("minutes").value = minutes;
+        }
+
+        // タイマーを開始した瞬間の日付を取得
+        function setStartInfo() {
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const dd = String(today.getDate()).padStart(2, '0');
 
-            const dateField = document.getElementById("start_date");
-            if (dateField) dateField.value = `${yyyy}-${mm}-${dd}`;
-
-            const startedField = document.getElementById("started");
-            if (startedField) startedField.value = "1";
-
-            timerInterval = setInterval(() => {
-                const diffMs = Date.now() - startTime;
-                const minutes = Math.floor(diffMs / 60000);
-                const seconds = Math.floor((diffMs % 60000) / 1000);
-
-                document.getElementById("timer_minutes").textContent = String(minutes).padStart(2, "0");
-                document.getElementById("timer_seconds").textContent = String(seconds).padStart(2, "0");
-
-                const minutesInput = document.getElementById("minutes");
-                if (minutesInput) {
-                    minutesInput.value = minutes;
-                }
-            }, 1000);
+            document.getElementById("start_date").value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById("started").value = "1";
         }
 
+        // タイマーの開始処理
+        function startTimer() {
+            if (timerInterval !== null) return;
+
+            if (timerState === "idle") {
+                elapsedMs = 0;
+                setStartInfo();
+            }
+
+            startTime = Date.now();
+            timerInterval = setInterval(timerTick, 1000);
+        }
+
+        // タイマーの停止処理
         function stopTimer() {
             if (timerInterval !== null) {
+                elapsedMs += Date.now() - startTime;
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
         }
+
+        // タイマーの再開処理
+        function resumeTimer() {
+            if (timerInterval !== null) return;
+            startTime = Date.now();
+            timerInterval = setInterval(timerTick, 1000);
+        }
+
+        // タイマーを停止せずに登録すると警告を表示
+        function checkBeforeSubmit() {
+            if (timerState === "running") {
+                alert("タイマーを停止してください");
+                return false;
+            }
+            return true;
+        }
+
+        // 時間計測を行った場合、キャンセル時に警告を表示
+        function confirmCancel() {
+            if (timerState !== "idle") {
+                if (!confirm("計測中の記録があります。破棄しますか？")) {
+                    return;
+                }
+            }
+            location.href = "{{ url_for('index') }}";
+        }
+
+        // 初期状態を反映
+        updateButtons();
+
     </script>
 
 </body>
