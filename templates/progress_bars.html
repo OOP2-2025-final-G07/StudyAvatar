@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 5px;
+            background: transparent;
+        }
+
+        .bar-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .label-box {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .track {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .fill {
+            height: 100%;
+            transition: width 0.8s ease-in-out;
+        }
+
+        /* 海老原さんの指定色 */
+        .sci-bar {
+            background: #36A2EB;
+        }
+
+        /* 理系: 青 */
+        .hum-bar {
+            background: #FF6384;
+        }
+
+        /* 文系: 赤 */
+        .tot-bar {
+            background: #333333;
+        }
+
+        /* 総合: 黒 */
+    </style>
+</head>
+
+<body>
+    <div class="bar-stack">
+        <div class="item">
+            <div class="label-box"><span>理系 ({{ science.label }})</span><span>{{ science.status }}</span></div>
+            <div class="track">
+                <div class="fill sci-bar" style="width: {{ science.percent }}%;"></div>
+            </div>
+        </div>
+        <div class="item">
+            <div class="label-box"><span>文系 ({{ humanities.label }})</span><span>{{ humanities.status }}</span></div>
+            <div class="track">
+                <div class="fill hum-bar" style="width: {{ humanities.percent }}%;"></div>
+            </div>
+        </div>
+        <div class="item">
+            <div class="label-box"><span>総合 ({{ total.label }})</span><span>{{ total.status }}</span></div>
+            <div class="track">
+                <div class="fill tot-bar" style="width: {{ total.percent }}%;"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

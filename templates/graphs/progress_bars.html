@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background: transparent;
+        }
+
+        .progress-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .lap-tag {
+            font-size: 10px;
+            background: #333;
+            color: #fff;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+
+        .track {
+            background: #eee;
+            height: 14px;
+            border-radius: 7px;
+            position: relative;
+            overflow: visible;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .fill {
+            height: 100%;
+            border-radius: 7px;
+            transition: width 1s ease-in-out;
+        }
+
+        /* 1周目の色 */
+        .sci-1 {
+            background: #36A2EB;
+        }
+
+        /* 理系: 青 */
+        .hum-1 {
+            background: #FF6384;
+        }
+
+        /* 文系: 赤 */
+        .tot-1 {
+            background: #666666;
+        }
+
+        /* 総合: グレー */
+
+        /* 2周目以降の色（より重厚に） */
+        .sci-2 {
+            background: #0056b3;
+            box-shadow: 0 0 5px rgba(0, 86, 179, 0.5);
+        }
+
+        .hum-2 {
+            background: #b0123a;
+            box-shadow: 0 0 5px rgba(176, 18, 58, 0.5);
+        }
+
+        .tot-2 {
+            background: #000000;
+        }
+
+        /* 進化基準のマーカー（動的に位置が決まる） */
+        .marker {
+            position: absolute;
+            top: -5px;
+            bottom: -5px;
+            width: 2px;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 2;
+        }
+
+        .marker-label {
+            position: absolute;
+            top: -15px;
+            transform: translateX(-50%);
+            font-size: 9px;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="progress-stack">
+        {# 表示する項目の定義 #}
+        {% set items = [
+        {'label': '理系', 'data': science, 'type': 'sci'},
+        {'label': '文系', 'data': humanities, 'type': 'hum'},
+        {'label': '総合', 'data': total, 'type': 'tot'}
+        ] %}
+
+        {% for item in items %}
+        <div class="bar-unit">
+            <div class="label-row">
+                <span>
+                    {{ item.label }}
+                    {% if item.data.lap > 1 %}
+                    <span class="lap-tag">{{ item.data.lap }}周目</span>
+                    {% endif %}
+                </span>
+                <span style="font-size: 11px;">{{ item.data.val }} / {{ max_min }} 分</span>
+            </div>
+
+            <div class="track">
+                {# 進化基準の仕切りを動的に描画 #}
+                {% if threshold %}
+                {% for m in [threshold.min_1, threshold.min_2] %}
+                <div class="marker" style="left: {{ (m / max_min) * 100 }}%;">
+                    <span class="marker-label">{{ m }}</span>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {# 進捗バーの本体 #}
+                <div class="fill {{ item.type }}-{{ '2' if item.data.lap > 1 else '1' }}"
+                    style="width: {{ item.data.percent }}%;">
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+
+</html>
