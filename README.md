@@ -52,3 +52,28 @@
 | K24071 佐々木 知哉 | 勉強の処理 |
 | K24084 鷲見叶芽 | キャラクターデザインと管理 |
 
+
+
+## 動作条件: require
+
+
+```bash
+python 3.13.7
+
+# python lib
+Flask==3.1.2
+peewee==3.18.3
+
+# frontend lib (CDN)
+Chart.js
+```
+
+## 使い方: usage
+　　
+以下のようにapp.pyを実行し、ブラウザから下記のUPLにアクセスしてください。
+
+```bash
+$ python app.py
+# Try accessing "http://localhost:8080" in your browser.
+```
+
