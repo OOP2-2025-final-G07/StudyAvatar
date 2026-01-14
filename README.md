@@ -76,4 +76,4 @@ Chart.js
 $ python app.py
 # Try accessing "http://localhost:8080" in your browser.
 ```
-
+(※環境によっては python3 app.py と入力してください)
