@@ -156,7 +156,7 @@ def update_today_avatar():
     update_avatar_for_date(today)
     update_avatar_for_date(yesterday)
 
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
 
 
 # ------------------------------------------------
@@ -165,7 +165,7 @@ def update_today_avatar():
 @avatar_bp.route('/update_recent', methods=['POST'])
 def update_recent_avatars():
     update_recent_avatars_logic()
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
 
 
 # ------------------------------------------------
@@ -185,7 +185,7 @@ def change_threshold():
     
     update_recent_avatars_logic()
 
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
 
 
 # ------------------------------------------------
