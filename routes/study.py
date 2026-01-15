@@ -35,9 +35,9 @@ def new_study():
             and not (current_app.debug and (debug_minutes and debug_date))
         ):
             error_message = "タイマーを開始してください"
-            studys = Study.select() # ＊変更後、この行を削除してください
+            
             return render_template('study.html',
-                                    items=studys, # ＊変更後、この行を削除してください
+                                   
                                     debug=current_app.debug,
                                     error_message=error_message,
                                     form_data=form_data
@@ -59,10 +59,10 @@ def new_study():
         # 0分かどうかのチェック
         if minutes == 0:
             error_message = "記録が短すぎて登録できません。1分以上計測してください。"
-            studys = Study.select() # ＊変更後、この行を削除してください
+        
             return render_template(
                 'study.html',
-                items=studys, # ＊変更後、この行を削除してください
+                
                 debug=current_app.debug,
                 error_message=error_message,
                 form_data=form_data
@@ -78,9 +78,8 @@ def new_study():
         )
         return redirect(url_for('index'))
 
-    studys = Study.select() # ＊変更後、この行を削除してください
+    
     return render_template('study.html',
-                            items=studys, # ＊変更後、この行を削除してください
-                            debug=current_app.debug,
+                            
                             form_data=form_data
                            )

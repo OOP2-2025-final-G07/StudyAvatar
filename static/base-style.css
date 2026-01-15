@@ -259,3 +259,14 @@ body {
     text-align: left;
     border-bottom: 1px solid var(--border-color);
 }
+
+
+/* スタート/ストップ/再開ボタンの使用不可時の見た目 */
+.timer-controls button:disabled {
+    opacity: 0.4;
+    /* 薄くする */
+    cursor: not-allowed;
+    /* 禁止カーソル */
+    filter: grayscale(60%);
+    /* 色をくすませる */
+}

@@ -450,6 +450,12 @@
             box-sizing: border-box;
         }
 
+        /* 備考（textarea）の可変長を無効化 */
+        .study-form textarea.form-control {
+            resize: none;
+            height: 120px; /* 固定の高さを設定 */
+        }
+
         /* タイマーのデザイン (白っぽく修正) */
         .timer-box {
             background-color: #f8f9fa; /* 薄いグレー */
