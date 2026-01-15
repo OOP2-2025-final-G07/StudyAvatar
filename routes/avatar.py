@@ -150,7 +150,7 @@ def update_today_avatar():
     update_avatar_for_date(today)
     update_avatar_for_date(yesterday)
 
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
 
 
 # ------------------------------------------------
@@ -165,7 +165,7 @@ def update_recent_avatars():
         target_date = today - timedelta(days=i)
         update_avatar_for_date(target_date)
 
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
 
 
 # ------------------------------------------------
@@ -183,7 +183,7 @@ def change_threshold():
         .where(AvatarThresholdSet.id == threshold_id) \
         .execute()
 
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
 
 
 # ------------------------------------------------

@@ -76,7 +76,7 @@ def new_study():
             subject=request.form['subject'],
             date=study_date
         )
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
 
     
     return render_template('study.html',
