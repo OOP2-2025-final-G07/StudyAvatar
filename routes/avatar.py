@@ -133,6 +133,12 @@ def update_avatar_for_date(target_date):
         record.level = level
         record.save()
 
+def update_recent_avatars_logic(days=7):
+    today = date.today()
+    for i in range(days):
+        target_date = today - timedelta(days=i)
+        update_avatar_for_date(target_date)
+
 
 # ================================================================
 # ルーティング
@@ -158,13 +164,7 @@ def update_today_avatar():
 # ------------------------------------------------
 @avatar_bp.route('/update_recent', methods=['POST'])
 def update_recent_avatars():
-    today = date.today()
-
-    # 今日〜6日前までを再計算
-    for i in range(7):
-        target_date = today - timedelta(days=i)
-        update_avatar_for_date(target_date)
-
+    update_recent_avatars_logic()
     return redirect(url_for('index'))
 
 
@@ -182,6 +182,8 @@ def change_threshold():
     AvatarThresholdSet.update(is_active=True) \
         .where(AvatarThresholdSet.id == threshold_id) \
         .execute()
+    
+    update_recent_avatars_logic()
 
     return redirect(url_for('index'))
 
