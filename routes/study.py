@@ -80,6 +80,6 @@ def new_study():
 
     
     return render_template('study.html',
-                            
+                            debug=current_app.debug,
                             form_data=form_data
                            )
