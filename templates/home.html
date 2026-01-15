@@ -21,9 +21,10 @@
     <div class="container">
         <div class="dashboard-grid">
             
+
             <div class="current-char-area card">
                 <h2>今日のパートナー</h2>
-                
+
                 <div class="avatar-display-large">
                     {% if skin %}
                         <img src="{{ skin }}" alt="Current Avatar" class="avatar-img-large">
@@ -35,34 +36,13 @@
                 </div>
 
                 <div class="progress-container" style="width: 85%; margin: 15px auto;">
-                    <div class="progress-label" style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold; margin-bottom:2px;">
-                        <span>理系 (Lap {{ science.lap }})</span><span>{{ science.percent|round|int }}%</span>
-                    </div>
-                    <div class="progress-track" style="background:#e0e0e0; height:10px; border-radius:5px; overflow:hidden; margin-bottom:8px;">
-                        <div class="progress-fill" style="width: {{ science.percent }}%; background:#36A2EB; height:100%;"></div>
-                    </div>
-                    
-                    <div class="progress-label" style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold; margin-bottom:2px;">
-                        <span>文系 (Lap {{ humanities.lap }})</span><span>{{ humanities.percent|round|int }}%</span>
-                    </div>
-                    <div class="progress-track" style="background:#e0e0e0; height:10px; border-radius:5px; overflow:hidden; margin-bottom:8px;">
-                        <div class="progress-fill" style="width: {{ humanities.percent }}%; background:#FF6384; height:100%;"></div>
-                    </div>
-
-                    <div class="progress-label" style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold; margin-bottom:2px;">
-                        <span>総合 (Lap {{ total.lap }})</span><span>{{ total.percent|round|int }}%</span>
-                    </div>
-                    <div class="progress-track" style="background:#e0e0e0; height:10px; border-radius:5px; overflow:hidden;">
-                        <div class="progress-fill" style="width: {{ total.percent }}%; background:#333333; height:100%;"></div>
-                    </div>
+                    <iframe src="{{ url_for('progress.show_bars') }}" 
+                            style="width: 100%; height: 190px; border: none; overflow: hidden;">
+                    </iframe>
                 </div>
 
                 <div class="char-info">
                     <p class="today-date">{{ current_date }}</p>
-
-                    <div class="status-box">
-                        <p><strong>現在の称号:</strong> <span class="dummy-text">Lv.{{ science.lap + humanities.lap }} 修行中</span></p>
-                    </div>
 
                     <form action="{{ url_for('avatar.update_today_avatar') }}" method="post">
                         <button type="submit" class="btn-update">今日の成長を反映</button>
