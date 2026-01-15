@@ -37,7 +37,7 @@ def get_progress_data(minutes, max_min):
 
 # ホームページのルート
 @app.route('/')
-def index():
+def home():
     # 直近の学習ログを取得（最新5件）
     recent_studies = Study.select().order_by(Study.date.desc()).limit(5)
 
@@ -57,7 +57,7 @@ def index():
     hum_min = sum(s.minutes for s in all_studies if s.subject not in sci_subjects)
 
     return render_template(
-        'index.html',
+        'home.html',
         recent_studies=recent_studies,
         science=get_progress_data(sci_min, max_min),
         humanities=get_progress_data(hum_min, max_min),
