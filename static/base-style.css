@@ -1,21 +1,14 @@
 /* =========================================
-   基本設定・変数
+   基本設定・変数 (既存コメント維持)
    ========================================= */
 :root {
-    --primary-color: #4CAF50;
-    /* メインカラー（緑） */
-    --primary-hover: #45a049;
-    /* ホバー時の緑 */
-    --bg-color: #f4f7f6;
-    /* 背景色（薄いグレー） */
-    --card-bg: #ffffff;
-    /* カード背景（白） */
-    --text-main: #333333;
-    /* テキスト色 */
-    --text-sub: #666666;
-    /* サブテキスト色 */
-    --border-color: #e0e0e0;
-    /* 枠線の色 */
+    --primary-color: #4CAF50;       /* メインカラー（緑） */
+    --primary-hover: #45a049;       /* ホバー時の緑 */
+    --bg-color: #f4f7f6;            /* 背景色（薄いグレー） */
+    --card-bg: #ffffff;             /* カード背景（白） */
+    --text-main: #333333;           /* テキスト色 */
+    --text-sub: #666666;            /* サブテキスト色 */
+    --border-color: #e0e0e0;        /* 枠線の色 */
 }
 
 body {
@@ -24,8 +17,8 @@ body {
     padding: 0;
     background-color: var(--bg-color);
     color: var(--text-main);
-    height: 100vh;
-    /* 画面全体の高さを確保 */
+    /* 見切れ防止のため min-height に変更し、overflow を許可する */
+    min-height: 100vh;
 }
 
 /* =========================================
@@ -38,7 +31,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .main-header h1 {
@@ -73,8 +66,6 @@ body {
     max-width: 1200px;
     margin: 20px auto;
     padding: 0 20px;
-    height: calc(100vh - 100px);
-    /* ヘッダー分を引いた高さ */
     box-sizing: border-box;
 }
 
@@ -82,10 +73,9 @@ body {
 .card {
     background: var(--card-bg);
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     padding: 20px;
-    overflow: hidden;
-    /* 中身がはみ出ないように */
+    /* 見切れ防止のため内容に応じて伸縮させる */
     display: flex;
     flex-direction: column;
 }
@@ -98,13 +88,11 @@ body {
     border: none;
     padding: 12px 24px;
     border-radius: 6px;
-    /* 少し角丸 */
     cursor: pointer;
     font-size: 1rem;
     font-weight: bold;
     transition: background 0.3s;
     width: 100%;
-    /* 横幅いっぱいに */
 }
 
 .btn-update:hover,
@@ -122,50 +110,28 @@ body {
     transition: all 0.2s;
 }
 
-.btn-small:hover {
-    background-color: var(--primary-color);
-    color: white;
-}
-
 /* =========================================
-   ① ホーム画面 (3分割レイアウト)
+   ① ホーム画面 (3段レイアウトに拡張)
    ========================================= */
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    /* 左右均等 (1:1) */
-    grid-template-rows: 1fr 1fr;
-    /* 右側の上下均等 (1:1) */
+    /* 行数を3段に変更（History, Graph, Log） */
+    grid-template-rows: auto auto auto; 
     gap: 20px;
-    height: 100%;
-    /* コンテナの高さいっぱいに広げる */
 }
 
-/* 左側：キャラエリア (縦結合) */
+/* 左側：キャラエリア (3段分を結合) */
 .current-char-area {
     grid-column: 1 / 2;
-    grid-row: 1 / 3;
-    /* 上から下までぶち抜き */
+    grid-row: 1 / 4; /* 1行目から4行目の手前まで（全段）スパン */
     align-items: center;
     justify-content: center;
     text-align: center;
 }
 
-/* 右上：履歴エリア */
-.history-area {
-    grid-column: 2 / 3;
-    grid-row: 1 / 2;
-}
-
-/* 右下：ログエリア */
-.log-area {
-    grid-column: 2 / 3;
-    grid-row: 2 / 3;
-}
-
-/* アバター画像の共通設定 */
+/* アバター画像のサイズ調整（ゲージとの兼ね合い） */
 .avatar-display-large {
-    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -174,17 +140,43 @@ body {
 }
 
 .avatar-img-large {
-    max-width: 80%;
-    max-height: 80%;
+    max-width: 90%;
+    /* 縦の見切れを防ぐため高さを制限 */
+    max-height: 280px; 
     object-fit: contain;
-    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.1));
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
 }
 
-/* ホーム画面の履歴スクロール部分 */
+/* 右側エリア：1段目 */
+.history-area {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+}
+
+/* 右側エリア：2段目（新規グラフ枠） */
+.graph-area {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+}
+
+/* 右側エリア：3段目 */
+.log-area {
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
+}
+
+/* 学習ログヘッダーのめり込み修正 */
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px; /* テーブルとの間に余白を追加 */
+}
+
+/* 履歴スクロール */
 .history-scroller {
     flex: 1;
     overflow-x: auto;
-    /* 横スクロール許可 */
     display: flex;
     align-items: center;
 }
@@ -196,9 +188,7 @@ body {
 }
 
 .history-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    text-align: center;
     min-width: 60px;
 }
 
@@ -226,79 +216,23 @@ body {
 .record-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    /* 強制的に左右均等 (1:1) */
     gap: 20px;
-    height: 100%;
-    /* コンテナの高さいっぱいに広げる */
 }
 
-/* 左側：キャラ表示 */
-.char-side {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.timer-box {
+    background-color: #f8f9fa !important;
+    color: #333 !important;
+    border: 2px solid var(--border-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 2.5rem;
     text-align: center;
-}
-
-.char-message {
-    margin-top: 15px;
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-weight: bold;
-}
-
-/* 右側：入力フォーム */
-.form-side {
-    height: 100%;
-    overflow-y: auto;
-    /* 内容が多いときは縦スクロール */
-    padding-right: 5px;
-    /* スクロールバーとの被り防止 */
-}
-
-/* フォーム部品 */
-.study-form {
-    margin-top: 10px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: var(--text-sub);
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-sizing: border-box;
-    /* 枠線を含めたサイズ計算 */
-    font-size: 1rem;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
-}
-
-.form-actions {
-    margin-top: 20px;
-    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
 }
 
 /* =========================================
-   テーブル (ログ表示用)
+   テーブル (共通)
    ========================================= */
 .table-wrapper {
     flex: 1;
@@ -315,48 +249,19 @@ body {
 .log-table th {
     background-color: #fafafa;
     position: sticky;
-    /* スクロールしてもヘッダーを固定 */
     top: 0;
     z-index: 10;
     border-bottom: 2px solid var(--border-color);
 }
 
-.log-table th,
-.log-table td {
+.log-table th, .log-table td {
     padding: 10px;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
 }
 
-/* ダミーテキストやプレースホルダー */
-.no-avatar-placeholder {
-    width: 150px;
-    height: 150px;
-    background-color: #eee;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-}
 
-.status-box {
-    background-color: #f9f9f9;
-    padding: 10px;
-    border-radius: 8px;
-    width: 80%;
-    margin: 10px auto;
-}
-
-.dummy-text {
-    background-color: #eee;
-    color: #888;
-    padding: 2px 5px;
-    border-radius: 3px;
-    font-size: 0.85em;
-}
-
-/* スタート/ストップ/再開ボタンの使用負荷時の見た目 */
+/* スタート/ストップ/再開ボタンの使用不可時の見た目 */
 .timer-controls button:disabled {
     opacity: 0.4;
     /* 薄くする */

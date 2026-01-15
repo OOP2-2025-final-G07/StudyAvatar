@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="ja">
 
 <head>
@@ -33,4 +33,107 @@
     </button>
 </form>
 
+</html> -->
+
+<!-- <!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>設定 | Study Avatar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
+</head>
+<body>
+    <header class="main-header">
+        <h1>Study Avatar</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">ホーム</a></li>
+                <li><a href="{{ url_for('study.new_study') }}">勉強記録</a></li>
+                <li><a href="{{ url_for('setting.seed_set') }}" class="active">設定</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="card" style="max-width: 600px; margin: 0 auto; padding: 30px;">
+            <h2>進化の難易度設定</h2>
+            
+            <form method="post" action="{{ url_for('avatar.change_threshold') }}" class="study-form">
+                <div class="form-group">
+                    <label>進化基準セットの選択</label>
+                    <select name="threshold_id" class="form-control">
+                        {% for t in threshold_sets %}
+                        <option value="{{ t.id }}" {% if t.is_active %}selected{% endif %}>
+                            {{ t.name }}（{{ t.min_1 }} / {{ t.min_2 }} / {{ t.min_3 }}分）
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 10px;">設定を変更する</button>
+            </form>
+
+            <hr style="margin: 40px 0; border: 0; border-top: 1px solid #eee;">
+
+            <h3>データメンテナンス</h3>
+            <p style="font-size: 0.9rem; color: #666;">
+                基準を変更した際などは、アバター情報を再計算できます。
+            </p>
+            <form action="{{ url_for('avatar.update_recent_avatars') }}" method="post">
+                <button type="submit" class="btn-small" style="width: 100%; padding: 12px; font-size: 1rem;">
+                    直近7日間のアバターを更新
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>設定 | Study Avatar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
+</head>
+<body>
+    <header class="main-header">
+        <h1>Study Avatar</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">ホーム</a></li>
+                <li><a href="{{ url_for('study.new_study') }}">勉強記録</a></li>
+                <li><a href="{{ url_for('setting.seed_set') }}" class="active">設定</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="card" style="max-width: 600px; margin: 0 auto; padding: 30px;">
+            
+            <h2 style="margin-top: 0;">進化の難易度設定</h2>
+            
+            <form method="post" action="{{ url_for('avatar.change_threshold') }}" class="study-form">
+                <div class="form-group">
+                    <label>進化基準セットの選択</label>
+                    <select name="threshold_id" class="form-control">
+                        {% for t in threshold_sets %}
+                        <option value="{{ t.id }}" {% if t.is_active %}selected{% endif %}>
+                            {{ t.name }}（{{ t.min_1 }} / {{ t.min_2 }} / {{ t.min_3 }}分）
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 10px;">設定を変更する</button>
+            </form>
+
+            <form action="{{ url_for('avatar.update_recent_avatars') }}" method="post" style="margin-top: 30px;">
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 12px; font-size: 1rem; cursor: pointer;">
+                    直近7日間のアバターを更新
+                </button>
+            </form>
+
+        </div>
+    </div>
+</body>
 </html>

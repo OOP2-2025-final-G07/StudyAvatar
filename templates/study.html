@@ -1,3 +1,204 @@
+<!-- <!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>勉強追加 | Study Avatar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
+    <style>
+        /* タイマーのデザイン修正（白基調） */
+        .timer-box {
+            background-color: #ffffff; /* 白背景 */
+            color: #333;               /* 黒文字 */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 3rem;
+            text-align: center;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 10px 0;
+            border: 2px solid #eee;    /* 柔らかい枠線 */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            letter-spacing: 2px;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* めり込み防止：フォーム側に余白を追加 */
+        .form-side {
+            padding-bottom: 100px; 
+            overflow-y: auto;
+        }
+
+        .debug-area {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin-top: 30px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <h1>Study Avatar</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">ホーム</a></li>
+                <li><a href="{{ url_for('study.new_study') }}" class="active">勉強記録</a></li>
+                <li><a href="{{ url_for('setting.seed_set') }}">設定</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="record-grid">
+            <div class="char-side card">
+                <h2>パートナー</h2>
+                <div class="avatar-display-large">
+                    {% if skin %}
+                        <img src="{{ skin }}" alt="Current Avatar" class="avatar-img-large">
+                    {% endif %}
+                </div>
+                <div class="char-message">
+                    <p>「集中して頑張ろう！」</p>
+                </div>
+            </div>
+
+            <div class="form-side card">
+                <h2>勉強時間を記録する</h2>
+
+                {% if error_message %}
+                <p style="color: red;">{{ error_message }}</p>
+                {% endif %}
+
+                <form action="{{ url_for('study.new_study') }}" method="post" class="study-form" onsubmit="return checkBeforeSubmit();">
+                    
+                    <div class="form-group">
+                        <label>教科</label>
+                        <select name="subject" class="form-control" required>
+                            <option value="">選択してください</option>
+                            <optgroup label="理系">
+                                <option value="数学">数学</option><option value="物理">物理</option>
+                                <option value="化学">化学</option><option value="生物">生物</option>
+                                <option value="情報">情報</option><option value="理系その他">理系その他</option>
+                            </optgroup>
+                            <optgroup label="文系">
+                                <option value="国語">国語</option><option value="英語">英語</option>
+                                <option value="日本史">日本史</option><option value="世界史">世界史</option>
+                                <option value="地理">地理</option><option value="文系その他">文系その他</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>タイトル</label>
+                        <input type="text" name="title" class="form-control" placeholder="例: 中間テスト対策" required>
+                    </div>
+
+                    <input type="hidden" name="start_date" id="start_date">
+                    <input type="hidden" name="started" id="started" value="0">
+                    <input type="hidden" name="minutes" id="minutes">
+
+                    <div class="form-group">
+                        <label>タイム計測</label>
+                        <div class="timer-box">
+                            <span id="timer_minutes">00</span> : <span id="timer_seconds">00</span>
+                        </div>
+                        <div class="timer-controls">
+                            <button type="button" class="btn-primary" id="startBtn" style="background-color: #2196F3;">スタート</button>
+                            <button type="button" class="btn-primary" id="pauseBtn" disabled style="background-color: #F44336;">ストップ</button>
+                            <button type="button" class="btn-primary" id="resumeBtn" style="background-color: #4CAF50;">再開</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>備考</label>
+                        <textarea name="note" rows="3" class="form-control" placeholder="感想など"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">記録完了</button>
+                    </div>
+
+                    {% if debug %}
+                    <div class="debug-area">
+                        <h4>🔧 デバッグ用手入力</h4>
+                        <input type="date" name="debug_date" class="form-control" style="margin-bottom:10px;">
+                        <input type="number" name="debug_minutes" placeholder="分" class="form-control">
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timerState = "idle";
+        let startTime = null;
+        let timerInterval = null;
+        let elapsedMs = 0;
+
+        function setState(state) {
+            timerState = state;
+            startBtn.disabled = (timerState !== "idle");
+            pauseBtn.disabled = (timerState !== "running");
+            resumeBtn.disabled = (timerState !== "paused");
+        }
+
+        startBtn.onclick = () => {
+            const today = new Date();
+            document.getElementById("start_date").value = today.toISOString().split('T')[0];
+            document.getElementById("started").value = "1";
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const diffMs = Date.now() - startTime + elapsedMs;
+                const min = Math.floor(diffMs / 60000);
+                const sec = Math.floor((diffMs % 60000) / 1000);
+                document.getElementById("timer_minutes").textContent = String(min).padStart(2, "0");
+                document.getElementById("timer_seconds").textContent = String(sec).padStart(2, "0");
+                document.getElementById("minutes").value = min;
+            }, 1000);
+            setState("running");
+        };
+
+        pauseBtn.onclick = () => {
+            elapsedMs += Date.now() - startTime;
+            clearInterval(timerInterval);
+            timerInterval = null;
+            setState("paused");
+        };
+
+        resumeBtn.onclick = () => {
+            startTime = Date.now();
+            timerInterval = setInterval(/* 同上の処理 */); 
+            setState("running");
+        };
+
+        function checkBeforeSubmit() {
+            if (timerState === "running") { alert("タイマーを停止してください"); return false; }
+            return true;
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
 <!DOCTYPE html>
 <html lang="ja">
 
@@ -6,17 +207,17 @@
     <title>勉強追加 | Study Avatar</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
     <style>
-        /* タイマーのデザイン */
+        /* タイマーのデザイン (白っぽく修正) */
         .timer-box {
-            background-color: #333;
-            color: #0f0;
+            background-color: #f8f9fa; /* 薄いグレー */
+            color: #333;               /* 濃い文字 */
+            border: 2px solid #ddd;
             font-family: 'Courier New', Courier, monospace;
             font-size: 2.5rem;
             text-align: center;
             padding: 15px;
             border-radius: 8px;
             margin: 10px 0;
-            box-shadow: inset 0 0 10px #000;
             letter-spacing: 2px;
         }
 
@@ -24,6 +225,13 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+        }
+
+        /* 記録ボタンのめり込み修正 */
+        .form-actions {
+            margin-top: 30px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
         }
 
         /* デバッグエリアのデザイン */
@@ -38,23 +246,20 @@
 </head>
 
 <body>
-    <!-- ヘッダー部分 -->
     <header class="main-header">
         <h1>Study Avatar</h1>
         <nav>
             <ul>
                 <li><a href="{{ url_for('index') }}">ホーム</a></li>
-                <li><a href="{{ url_for('study.new_study') }}">勉強記録</a></li>
+                <li><a href="{{ url_for('study.new_study') }}" class="active">勉強記録</a></li>
                 <li><a href="{{ url_for('setting.seed_set') }}">設定</a></li>
             </ul>
         </nav>
     </header>
 
-    <!-- メイン画面 -->
     <div class="container">
         <div class="record-grid">
 
-            <!-- キャラクター表示 -->
             <div class="char-side card">
                 <h2>パートナー</h2>
                 <div class="avatar-display-large">
@@ -71,7 +276,6 @@
                 </div>
             </div>
 
-            <!-- 勉強登録画面 -->
             <div class="form-side card">
                 <h2>勉強時間を記録する</h2>
 
@@ -82,16 +286,10 @@
                 <form action="{{ url_for('study.new_study') }}" method="post" class="study-form"
                     onsubmit="return checkBeforeSubmit();">
 
-                    <!-- <div class="form-group">
-                        <label>日付</label>
-                        <input type="date" name="date" class="form-control">
-                    </div> -->
-
                     <div class="form-group">
                         <label>教科</label>
                         <select name="subject" class="form-control" required>
                             <option value="">選択してください</option>
-
                             <optgroup label="理系">
                                 <option value="数学" {{ 'selected' if form_data.subject=='数学' }}>数学</option>
                                 <option value="物理" {{ 'selected' if form_data.subject=='物理' }}>物理</option>
@@ -100,7 +298,6 @@
                                 <option value="情報" {{ 'selected' if form_data.subject=='情報' }}>情報</option>
                                 <option value="理系その他" {{ 'selected' if form_data.subject=='理系その他' }}>理系その他</option>
                             </optgroup>
-
                             <optgroup label="文系">
                                 <option value="国語" {{ 'selected' if form_data.subject=='国語' }}>国語</option>
                                 <option value="英語" {{ 'selected' if form_data.subject=='英語' }}>英語</option>
@@ -118,11 +315,8 @@
                             value="{{ form_data.title if form_data else '' }}">
                     </div>
 
-                    <!-- タイマー開始時の日付（送信用） -->
                     <input type="hidden" name="start_date" id="start_date">
-                    <!-- タイマーが開始されたかどうか -->
                     <input type="hidden" name="started" id="started" value="0">
-                    <!-- 送信用計測時間データ（hidden） -->
                     <input type="hidden" name="minutes" id="minutes">
 
                     <div class="form-group">
@@ -140,11 +334,6 @@
                         </div>
                     </div>
 
-                    <!-- <div class="form-group">
-                        <label>時間 (分)</label>
-                        <input type="number" name="minutes" id="minutes" class="form-control" placeholder="60" required>
-                    </div> -->
-
                     <div class="form-group">
                         <label>備考</label>
                         <textarea name="note" rows="4" class="form-control"
@@ -152,50 +341,22 @@
                     </div>
 
                     <div class="form-actions" style="display: flex; gap: 10px;">
-                        <button type="submit" class="btn-primary">
-                            記録完了
-                        </button>
+                        <button type="submit" class="btn-primary">記録完了</button>
                         <button type="button" class="btn-small" onclick="confirmCancel()"
                             style="background: #ccc; border:none; color: #333; width: auto; padding: 12px 20px;">キャンセル
                         </button>
-                    </div>
-
-                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-                    <h3>最近の記録リスト</h3><!-- のちに削除し、indexに移動させてください -->
-                    <div class="table-wrapper" style="max-height: 200px; margin-bottom: 20px;">
-                        <table class="log-table">
-                            <thead>
-                                <tr>
-                                    <th>日付</th>
-                                    <th>教科</th>
-                                    <th>タイトル</th>
-                                    <th>時間</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for study in items %}
-                                <tr>
-                                    <td>{{ study.date }}</td>
-                                    <td>{{ study.subject }}</td>
-                                    <td>{{ study.title }}</td>
-                                    <td>{{ study.minutes }}分</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
                     </div>
 
                     {% if debug %}
                     <div class="debug-area">
                         <h4 style="margin-top: 0; color: #555;">🔧 デバッグ用手入力</h4>
                         <div class="form-group">
-                            <label>日付 (手動): <input type="date" name="debug_date" class="form-control"></label>
+                            <label>日付: <input type="date" name="debug_date" class="form-control"></label>
                         </div>
                         <div class="form-group">
-                            <label>時間 (分・手動): <input type="number" name="debug_minutes" min="0"
-                                    class="form-control"></label>
+                            <label>時間(分): <input type="number" name="debug_minutes" min="0" class="form-control"></label>
                         </div>
-                        <p style="color: gray; font-size: 0.8rem;">※タイマーを使わず、強制的に日時を指定して記録する場合に使用（上の登録ボタンで送信されます）</p>
+                        <p style="color: gray; font-size: 0.8rem;">※タイマーを使わず記録する場合に上の登録ボタンで送信してください</p>
                     </div>
                     {% endif %}
 
@@ -204,85 +365,48 @@
         </div>
     </div>
 
-
     <script>
-        // タイマーの状況 idle/running/paused
+        // --- 既存のタイマーロジックを維持 ---
         let timerState = "idle";
-
-        // 状態更新
-        function setState(state) {
-            timerState = state;
-            updateButtons();
-        }
-
-        // スタート、ストップ、再開ボタンを押した時の処理
-        startBtn.onclick = () => {
-            startTimer();
-            setState("running");
-        };
-
-        pauseBtn.onclick = () => {
-            setState("paused");
-            stopTimer();
-        };
-
-        resumeBtn.onclick = () => {
-            setState("running");
-            resumeTimer();
-        };
-
-        // ボタンの変更
+        function setState(state) { timerState = state; updateButtons(); }
+        startBtn.onclick = () => { startTimer(); setState("running"); };
+        pauseBtn.onclick = () => { setState("paused"); stopTimer(); };
+        resumeBtn.onclick = () => { setState("running"); resumeTimer(); };
         function updateButtons() {
             startBtn.disabled = (timerState !== "idle");
             pauseBtn.disabled = (timerState !== "running");
             resumeBtn.disabled = (timerState !== "paused");
         }
 
-        // タイマーの処理
         let startTime = null;
         let timerInterval = null;
-        // 累積時間
         let elapsedMs = 0;
 
-        // タイマーの値処理
         function timerTick() {
             const diffMs = Date.now() - startTime + elapsedMs;
             const minutes = Math.floor(diffMs / 60000);
             const seconds = Math.floor((diffMs % 60000) / 1000);
-
-            document.getElementById("timer_minutes").textContent =
-                String(minutes).padStart(2, "0");
-            document.getElementById("timer_seconds").textContent =
-                String(seconds).padStart(2, "0");
-
+            document.getElementById("timer_minutes").textContent = String(minutes).padStart(2, "0");
+            document.getElementById("timer_seconds").textContent = String(seconds).padStart(2, "0");
             document.getElementById("minutes").value = minutes;
         }
 
-        // タイマーを開始した瞬間の日付を取得
         function setStartInfo() {
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const dd = String(today.getDate()).padStart(2, '0');
-
             document.getElementById("start_date").value = `${yyyy}-${mm}-${dd}`;
             document.getElementById("started").value = "1";
         }
 
-        // タイマーの開始処理
         function startTimer() {
             if (timerInterval !== null) return;
-
-            if (timerState === "idle") {
-                elapsedMs = 0;
-                setStartInfo();
-            }
-
+            if (timerState === "idle") { elapsedMs = 0; setStartInfo(); }
             startTime = Date.now();
             timerInterval = setInterval(timerTick, 1000);
         }
 
-        // タイマーの停止処理
         function stopTimer() {
             if (timerInterval !== null) {
                 elapsedMs += Date.now() - startTime;
@@ -291,37 +415,318 @@
             }
         }
 
-        // タイマーの再開処理
         function resumeTimer() {
             if (timerInterval !== null) return;
             startTime = Date.now();
             timerInterval = setInterval(timerTick, 1000);
         }
 
-        // タイマーを停止せずに登録すると警告を表示
         function checkBeforeSubmit() {
-            if (timerState === "running") {
-                alert("タイマーを停止してください");
-                return false;
-            }
+            if (timerState === "running") { alert("タイマーを停止してください"); return false; }
             return true;
         }
 
-        // 時間計測を行った場合、キャンセル時に警告を表示
         function confirmCancel() {
-            if (timerState !== "idle") {
-                if (!confirm("計測中の記録があります。破棄しますか？")) {
-                    return;
-                }
-            }
+            if (timerState !== "idle") { if (!confirm("計測中の記録があります。破棄しますか？")) return; }
             location.href = "{{ url_for('index') }}";
         }
-
-        // 初期状態を反映
         updateButtons();
-
     </script>
-
 </body>
+</html> -->
 
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>勉強追加 | Study Avatar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base-style.css') }}">
+    <style>
+        /* 枠サイズ統一のためのスタイル調整 */
+        .study-form .form-control,
+        .study-form .timer-box {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 備考（textarea）の可変長を無効化 */
+        .study-form textarea.form-control {
+            resize: none;
+            height: 120px; /* 固定の高さを設定 */
+        }
+
+        /* タイマーのデザイン (白っぽく修正) */
+        .timer-box {
+            background-color: #f8f9fa; /* 薄いグレー */
+            color: #333;               /* 濃い文字 */
+            border: 2px solid #ddd;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 2.5rem;
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* --- キャラクターの吹き出しデザイン --- */
+        .char-side {
+            text-align: center; /* 要素を中央寄せ */
+        }
+
+        .char-message {
+            position: relative;
+            background-color: #ffffff;
+            border: 2px solid #4CAF50; /* メインカラーの緑 */
+            border-radius: 15px;
+            padding: 12px 20px;
+            margin: 25px auto 0; /* 上に三角のスペースを確保 */
+            display: inline-block;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.05));
+        }
+
+        /* 吹き出しの三角部分（上向き） */
+        .char-message::before {
+            content: "";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            margin-left: -10px;
+            border-style: solid;
+            border-width: 0 10px 12px 10px;
+            border-color: transparent transparent #4CAF50 transparent;
+        }
+
+        .char-message::after {
+            content: "";
+            position: absolute;
+            top: -9px;
+            left: 50%;
+            margin-left: -9px;
+            border-style: solid;
+            border-width: 0 9px 11px 9px;
+            border-color: transparent transparent #ffffff transparent;
+        }
+
+        .char-message p {
+            margin: 0;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        /* ------------------------------------ */
+
+        /* 記録ボタンのめり込み修正 */
+        .form-actions {
+            margin-top: 30px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+
+        /* デバッグエリアのデザイン */
+        .debug-area {
+            background-color: #f0f0f0;
+            padding: 15px;
+            margin-top: 30px;
+            border: 2px dashed #bbb;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="main-header">
+        <h1>Study Avatar</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">ホーム</a></li>
+                <li><a href="{{ url_for('study.new_study') }}" class="active">勉強記録</a></li>
+                <li><a href="{{ url_for('setting.seed_set') }}">設定</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="record-grid">
+
+            <div class="char-side card">
+                <h2>パートナー</h2>
+                <div class="avatar-display-large">
+                    {% if skin %}
+                    <img src="{{ skin }}" alt="Current Avatar" class="avatar-img-large">
+                    {% else %}
+                    <div class="no-avatar-placeholder">
+                        <p>No Image</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="char-message">
+                    <p>「集中して頑張ろう！」</p>
+                </div>
+            </div>
+
+            <div class="form-side card">
+                <h2>勉強時間を記録する</h2>
+
+                {% if error_message %}
+                <p style="color: red;">{{ error_message }}</p>
+                {% endif %}
+
+                <form action="{{ url_for('study.new_study') }}" method="post" class="study-form"
+                    onsubmit="return checkBeforeSubmit();">
+
+                    <div class="form-group">
+                        <label>教科</label>
+                        <select name="subject" class="form-control" required>
+                            <option value="">選択してください</option>
+                            <optgroup label="理系">
+                                <option value="数学" {{ 'selected' if form_data.subject=='数学' }}>数学</option>
+                                <option value="物理" {{ 'selected' if form_data.subject=='物理' }}>物理</option>
+                                <option value="化学" {{ 'selected' if form_data.subject=='化学' }}>化学</option>
+                                <option value="生物" {{ 'selected' if form_data.subject=='生物' }}>生物</option>
+                                <option value="情報" {{ 'selected' if form_data.subject=='情報' }}>情報</option>
+                                <option value="理系その他" {{ 'selected' if form_data.subject=='理系その他' }}>理系その他</option>
+                            </optgroup>
+                            <optgroup label="文系">
+                                <option value="国語" {{ 'selected' if form_data.subject=='国語' }}>国語</option>
+                                <option value="英語" {{ 'selected' if form_data.subject=='英語' }}>英語</option>
+                                <option value="日本史" {{ 'selected' if form_data.subject=='日本史' }}>日本史</option>
+                                <option value="世界史" {{ 'selected' if form_data.subject=='世界史' }}>世界史</option>
+                                <option value="地理" {{ 'selected' if form_data.subject=='地理' }}>地理</option>
+                                <option value="文系その他" {{ 'selected' if form_data.subject=='文系その他' }}>文系その他</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>タイトル</label>
+                        <input type="text" name="title" class="form-control" placeholder="例: 中間テスト対策" required
+                            value="{{ form_data.title if form_data else '' }}">
+                    </div>
+
+                    <input type="hidden" name="start_date" id="start_date">
+                    <input type="hidden" name="started" id="started" value="0">
+                    <input type="hidden" name="minutes" id="minutes">
+
+                    <div class="form-group">
+                        <label>タイム計測</label>
+                        <div class="timer-box">
+                            <span id="timer_minutes">00</span> : <span id="timer_seconds">00</span>
+                        </div>
+                        <div class="timer-controls">
+                            <button type="button" class="btn-primary" id="startBtn"
+                                style="background-color: #2196F3;">スタート</button>
+                            <button type="button" class="btn-primary" id="pauseBtn" disabled
+                                style="background-color: #F44336;">ストップ</button>
+                            <button type="button" class="btn-primary" id="resumeBtn"
+                                style="background-color: #4CAF50;">再開</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>備考</label>
+                        <textarea name="note" rows="4" class="form-control"
+                            placeholder="感想など">{{ form_data.note if form_data else '' }}</textarea>
+                    </div>
+
+                    <div class="form-actions" style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn-primary">記録完了</button>
+                        <button type="button" class="btn-small" onclick="confirmCancel()"
+                            style="background: #ccc; border:none; color: #333; width: auto; padding: 12px 20px;">キャンセル
+                        </button>
+                    </div>
+
+                    {% if debug %}
+                    <div class="debug-area">
+                        <h4 style="margin-top: 0; color: #555;">🔧 デバッグ用手入力</h4>
+                        <div class="form-group">
+                            <label>日付: <input type="date" name="debug_date" class="form-control"></label>
+                        </div>
+                        <div class="form-group">
+                            <label>時間(分): <input type="number" name="debug_minutes" min="0" class="form-control"></label>
+                        </div>
+                        <p style="color: gray; font-size: 0.8rem;">※タイマーを使わず記録する場合に上の登録ボタンで送信してください</p>
+                    </div>
+                    {% endif %}
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 既存のタイマーロジックを維持 ---
+        let timerState = "idle";
+        function setState(state) { timerState = state; updateButtons(); }
+        startBtn.onclick = () => { startTimer(); setState("running"); };
+        pauseBtn.onclick = () => { setState("paused"); stopTimer(); };
+        resumeBtn.onclick = () => { setState("running"); resumeTimer(); };
+        function updateButtons() {
+            startBtn.disabled = (timerState !== "idle");
+            pauseBtn.disabled = (timerState !== "running");
+            resumeBtn.disabled = (timerState !== "paused");
+        }
+
+        let startTime = null;
+        let timerInterval = null;
+        let elapsedMs = 0;
+
+        function timerTick() {
+            const diffMs = Date.now() - startTime + elapsedMs;
+            const minutes = Math.floor(diffMs / 60000);
+            const seconds = Math.floor((diffMs % 60000) / 1000);
+            document.getElementById("timer_minutes").textContent = String(minutes).padStart(2, "0");
+            document.getElementById("timer_seconds").textContent = String(seconds).padStart(2, "0");
+            document.getElementById("minutes").value = minutes;
+        }
+
+        function setStartInfo() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById("start_date").value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById("started").value = "1";
+        }
+
+        function startTimer() {
+            if (timerInterval !== null) return;
+            if (timerState === "idle") { elapsedMs = 0; setStartInfo(); }
+            startTime = Date.now();
+            timerInterval = setInterval(timerTick, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval !== null) {
+                elapsedMs += Date.now() - startTime;
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function resumeTimer() {
+            if (timerInterval !== null) return;
+            startTime = Date.now();
+            timerInterval = setInterval(timerTick, 1000);
+        }
+
+        function checkBeforeSubmit() {
+            if (timerState === "running") { alert("タイマーを停止してください"); return false; }
+            return true;
+        }
+
+        function confirmCancel() {
+            if (timerState !== "idle") { if (!confirm("計測中の記録があります。破棄しますか？")) return; }
+            location.href = "{{ url_for('index') }}";
+        }
+        updateButtons();
+    </script>
+</body>
 </html>
